@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../api';
-import { Lightbulb, Network, Sparkles, AlertTriangle, CheckCircle, BrainCircuit } from 'lucide-react';
+import { Lightbulb, Network, Sparkles, AlertTriangle, CheckCircle, BrainCircuit, Download } from 'lucide-react';
 import { CausalLoopDiagram } from './CausalLoopDiagram';
 import './KnowledgeBase.css';
 
@@ -19,6 +19,7 @@ interface Insights {
 export const KnowledgeDiscovery: React.FC = () => {
   const [insights, setInsights] = useState<Insights | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
     fetchLatestInsights();
@@ -38,18 +39,23 @@ export const KnowledgeDiscovery: React.FC = () => {
 
   const handleExtractInsights = async () => {
     setIsLoading(true);
+    setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/knowledge/abstract`, {
-        method: 'POST',
-      });
-      const data = await response.json();
+      const res = await fetch(`${API_BASE_URL}/api/knowledge/abstract`);
+      if (!res.ok) {
+        throw new Error('Failed to fetch insights');
+      }
+      const data = await res.json();
       setInsights(data);
-    } catch (err) {
-      console.error(err);
-      alert('知見の抽出に失敗しました。');
+    } catch (err: any) {
+      setError(err.message || 'メタ知見の抽出に失敗しました');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleExport = () => {
+    window.location.href = `${API_BASE_URL}/api/knowledge/export`;
   };
 
   const [activeTab, setActiveTab] = useState<'insights' | 'loops'>('insights');
@@ -68,17 +74,28 @@ export const KnowledgeDiscovery: React.FC = () => {
             形式知を結合し、あなたの新たな暗黙知（深い気づき）へと昇華させます。
           </p>
         </div>
-        {activeTab === 'insights' && (
+        <div style={{ display: 'flex', gap: '12px' }}>
           <button 
-            className="btn-primary" 
-            onClick={handleExtractInsights}
-            disabled={isLoading}
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px', fontSize: '1rem', background: '#111827', color: 'white', border: 'none', borderRadius: '6px' }}
+            className="btn-secondary" 
+            onClick={handleExport}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 20px', fontSize: '0.95rem', background: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer' }}
           >
-            {isLoading ? <Sparkles size={20} className="spinning-icon" /> : <BrainCircuit size={20} />}
-            グラフ全体から知見を抽出
+            <Download size={18} />
+            エクスポート (JSON)
           </button>
-        )}
+          
+          {activeTab === 'insights' && (
+            <button 
+              className="btn-primary" 
+              onClick={handleExtractInsights}
+              disabled={isLoading}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px', fontSize: '1rem', background: '#111827', color: 'white', border: 'none', borderRadius: '6px' }}
+            >
+              {isLoading ? <Sparkles size={20} className="spinning-icon" /> : <BrainCircuit size={20} />}
+              グラフ全体から知見を抽出
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Tabs */}

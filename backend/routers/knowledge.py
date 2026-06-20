@@ -1,6 +1,7 @@
 import os
 import json
-from fastapi import APIRouter, HTTPException
+import datetime
+from fastapi import APIRouter, HTTPException, BackgroundTasks, UploadFile, File, Form, Response
 from pydantic import BaseModel
 from typing import Optional
 
@@ -279,3 +280,50 @@ async def ingest_knowledge(background_tasks: BackgroundTasks, files: List[Upload
         "message": "ドキュメントの解析をバックグラウンドで開始しました。画面を移動しても処理は継続されます。",
         "files": filenames
     }
+
+@router.get("/export")
+def export_knowledge(project_id: Optional[str] = None):
+    try:
+        db = init_db()
+        
+        # Fetch Graph Data
+        if project_id:
+            nodes_iter = db["graph_nodes"].rows_where("project_id = ?", [project_id])
+            edges_iter = db["graph_edges"].rows_where("project_id = ?", [project_id])
+        else:
+            nodes_iter = db["graph_nodes"].rows
+            edges_iter = db["graph_edges"].rows
+            
+        nodes = list(nodes_iter)
+        edges = list(edges_iter)
+        
+        # Fetch Insights
+        insights = []
+        if "insights" in db.table_names():
+            insights = list(db["insights"].rows)
+            
+        # Fetch Utilized Frameworks
+        frameworks = []
+        if "utilized_frameworks" in db.table_names():
+            frameworks = list(db["utilized_frameworks"].rows)
+            
+        export_data = {
+            "version": "1.0",
+            "exported_at": str(datetime.datetime.now()),
+            "project_id": project_id,
+            "graph_nodes": nodes,
+            "graph_edges": edges,
+            "insights": insights,
+            "utilized_frameworks": frameworks
+        }
+        
+        json_str = json.dumps(export_data, ensure_ascii=False, indent=2)
+        
+        return Response(
+            content=json_str,
+            media_type="application/json",
+            headers={"Content-Disposition": f"attachment; filename=knowledge_export.json"}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
