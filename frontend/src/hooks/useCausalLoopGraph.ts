@@ -113,6 +113,7 @@ export const useCausalLoopGraph = () => {
     isEvaluating,
     fetchData,
     handleNodeClick,
-    handleEvaluate
+    handleEvaluate,
+    setSelectedNodeLoops
   };
 };

@@ -59,11 +59,11 @@ export const KnowledgeDiscovery: React.FC = () => {
       
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <h1 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', margin: '0 0 10px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Lightbulb className="text-accent" size={28} />
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 700, letterSpacing: '-0.02em', color: '#111827', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <Lightbulb style={{ color: '#f59e0b' }} size={28} />
             知見の表出化（SECI Discovery）
           </h1>
-          <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: '0.95rem', maxWidth: '800px', lineHeight: '1.6' }}>
+          <p style={{ color: '#4b5563', margin: 0, fontSize: '0.95rem', maxWidth: '850px', lineHeight: '1.7', letterSpacing: '0.01em' }}>
             組織内に蓄積されたナレッジグラフ全体をAIが俯瞰し、局所的な事象の背後にある「抽象的な構造（システムアーキタイプ）」や「メタ知見」を抽出します。
             形式知を結合し、あなたの新たな暗黙知（深い気づき）へと昇華させます。
           </p>
@@ -153,12 +153,12 @@ export const KnowledgeDiscovery: React.FC = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 
                 {/* Meta Narrative Card */}
-                <div className="glass-panel" style={{ background: '#fcfcfc', borderLeft: '4px solid #374151' }}>
-                  <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: 0, color: '#111827' }}>
+                <div className="glass-panel" style={{ background: '#ffffff', borderLeft: '4px solid #3b82f6', boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.05)', padding: '24px' }}>
+                  <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: 0, marginBottom: '16px', color: '#1e3a8a', fontSize: '1.15rem', letterSpacing: '-0.01em' }}>
                     <Network size={20} />
                     組織の「根深い構造」ナラティブ
                   </h3>
-                  <p style={{ fontSize: '1.1rem', lineHeight: '1.8', color: 'var(--text-primary)', margin: 0 }}>
+                  <p style={{ fontSize: '0.95rem', lineHeight: '1.85', color: '#374151', margin: 0, letterSpacing: '0.03em', fontWeight: 400 }}>
                     {insights.meta_narrative}
                   </p>
                 </div>
@@ -167,15 +167,15 @@ export const KnowledgeDiscovery: React.FC = () => {
                   {/* Archetypes */}
                   {insights.archetypes && insights.archetypes.length > 0 && (
                     <div className="glass-panel">
-                      <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: 0 }}>
+                      <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: 0, fontSize: '1.1rem', color: '#111827', marginBottom: '16px' }}>
                         <AlertTriangle size={20} style={{ color: '#f59e0b' }} />
                         発見されたシステムアーキタイプ
                       </h3>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                         {insights.archetypes.map((arch, i) => (
                           <div key={i} style={{ padding: '16px', background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: '8px' }}>
-                            <h4 style={{ margin: '0 0 8px 0', color: '#b45309', fontSize: '1.05rem' }}>{arch.name}</h4>
-                            <p style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: '#92400e', lineHeight: '1.5' }}>{arch.description}</p>
+                            <h4 style={{ margin: '0 0 8px 0', color: '#b45309', fontSize: '1.0rem', letterSpacing: '0.02em' }}>{arch.name}</h4>
+                            <p style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: '#92400e', lineHeight: '1.6', letterSpacing: '0.01em' }}>{arch.description}</p>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                               {arch.nodes_involved.map((n, j) => (
                                 <span key={j} style={{ background: '#fef3c7', padding: '4px 8px', borderRadius: '12px', fontSize: '0.75rem', color: '#b45309', border: '1px solid #fde68a' }}>
@@ -192,11 +192,11 @@ export const KnowledgeDiscovery: React.FC = () => {
                   {/* New Insights */}
                   {insights.new_insights && insights.new_insights.length > 0 && (
                     <div className="glass-panel">
-                      <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: 0 }}>
+                      <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: 0, fontSize: '1.1rem', color: '#111827', marginBottom: '16px' }}>
                         <CheckCircle size={20} style={{ color: '#10b981' }} />
                         新しい発見と示唆（内面化へのヒント）
                       </h3>
-                      <ul style={{ padding: '0 0 0 20px', margin: 0, color: 'var(--text-primary)', lineHeight: '1.7' }}>
+                      <ul style={{ padding: '0 0 0 20px', margin: 0, color: '#374151', lineHeight: '1.8', fontSize: '0.95rem', letterSpacing: '0.01em' }}>
                         {insights.new_insights.map((insight, i) => (
                           <li key={i} style={{ marginBottom: '12px' }}>{insight}</li>
                         ))}

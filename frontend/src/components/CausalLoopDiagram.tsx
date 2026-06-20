@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { API_BASE_URL } from '../api';
 import ForceGraph2D from 'react-force-graph-2d';
-import { RefreshCw, Play, Loader, Map, Maximize, Minimize, Info, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { RefreshCw, Play, Loader, Map, Maximize, Minimize, Info, ChevronLeft, ChevronRight, X, Sparkles, Activity, Scale } from 'lucide-react';
 
 interface NodeData {
   id: string;
@@ -46,7 +46,8 @@ export const CausalLoopDiagram: React.FC = () => {
     isEvaluating,
     fetchData,
     handleNodeClick,
-    handleEvaluate
+    handleEvaluate,
+    setSelectedNodeLoops
   } = useCausalLoopGraph();
 
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -344,44 +345,73 @@ export const CausalLoopDiagram: React.FC = () => {
             <div style={{ height: '1px', background: '#e5e7eb', margin: '20px 0' }}></div>
 
             {/* Evaluation */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>AIによる極性判定</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Sparkles size={16} style={{ color: '#8b5cf6' }} />
+                AIによる極性判定
+              </div>
               <div style={{ display: 'flex', gap: '8px' }}>
-                <button className="btn-secondary" onClick={() => handleEvaluate(selectedLoop)} disabled={isEvaluating}>
-                  {isEvaluating ? <Loader size={14} className="spinning-icon" /> : <Play size={14} />}
-                  構造の評価
+                <button 
+                  onClick={() => handleEvaluate(selectedLoop)} 
+                  disabled={isEvaluating}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '6px',
+                    background: isEvaluating ? '#e2e8f0' : 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                    color: isEvaluating ? '#94a3b8' : 'white', border: 'none', borderRadius: '8px', padding: '6px 14px',
+                    fontSize: '0.85rem', fontWeight: 600, cursor: isEvaluating ? 'not-allowed' : 'pointer',
+                    boxShadow: isEvaluating ? 'none' : '0 4px 12px rgba(99, 102, 241, 0.25)',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  {isEvaluating ? <Loader size={14} className="spinning-icon" /> : <Play size={14} fill="currentColor" />}
+                  {isEvaluating ? '判定中...' : '構造を評価する'}
                 </button>
-                <button className="btn-secondary" onClick={fetchData} title="再読み込み">
+                <button 
+                  onClick={fetchData} 
+                  title="再読み込み"
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0', 
+                    borderRadius: '8px', width: '32px', height: '32px', cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
                   <RefreshCw size={14} />
                 </button>
               </div>
             </div>
 
             {currentEvaluation ? (
-              <div style={{ animation: 'fadeIn 0.3s ease-out' }}>
-                <div style={{ display: 'inline-block', fontSize: '0.8rem', fontWeight: 'bold', padding: '6px 12px', borderRadius: '20px', marginBottom: '12px',
-                  background: currentEvaluation.type === 'Reinforcing' ? '#dbeafe' : '#fce7f3',
-                  color: currentEvaluation.type === 'Reinforcing' ? '#1e40af' : '#9d174d'
+              <div style={{ animation: 'fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)' }}>
+                <div style={{ 
+                  display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', fontWeight: 700, 
+                  padding: '6px 14px', borderRadius: '20px', marginBottom: '14px',
+                  background: currentEvaluation.type === 'Reinforcing' ? '#eff6ff' : '#fdf2f8',
+                  color: currentEvaluation.type === 'Reinforcing' ? '#2563eb' : '#db2777',
+                  border: currentEvaluation.type === 'Reinforcing' ? '1px solid #bfdbfe' : '1px solid #fbcfe8'
                 }}>
+                  {currentEvaluation.type === 'Reinforcing' ? <Activity size={14} /> : <Scale size={14} />}
                   {currentEvaluation.type === 'Reinforcing' ? '自己強化ループ (R)' : 'バランス・ループ (B)'}
                 </div>
-                <p style={{ margin: 0, fontSize: '0.9rem', color: '#334155', lineHeight: '1.6' }}>
+                <p style={{ margin: 0, fontSize: '0.95rem', color: '#334155', lineHeight: '1.7', letterSpacing: '0.01em' }}>
                   {currentEvaluation.description}
                 </p>
               </div>
             ) : (
-              <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b', lineHeight: '1.5' }}>
+              <p style={{ margin: 0, fontSize: '0.9rem', color: '#64748b', lineHeight: '1.6' }}>
                 このループ構造が組織にどのような力学（成長、衰退、または停滞）をもたらしているかAIが判定し、グラフ上の極性を可視化します。
               </p>
             )}
 
             {/* Legend */}
-            <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #e5e7eb', fontSize: '0.75rem', color: '#64748b', display: 'flex', gap: '16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <div style={{ width: '12px', height: '3px', background: '#3b82f6' }}></div> (+) 自己強化
+            <div style={{ marginTop: '28px', paddingTop: '20px', borderTop: '1px dashed #cbd5e1', fontSize: '0.8rem', color: '#475569', display: 'flex', gap: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500 }}>
+                <div style={{ width: '16px', height: '4px', background: '#3b82f6', borderRadius: '2px' }}></div> 
+                <span style={{ color: '#2563eb' }}>(+) 自己強化</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <div style={{ width: '12px', height: '3px', background: '#ef4444' }}></div> (-) バランス
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500 }}>
+                <div style={{ width: '16px', height: '4px', background: '#ef4444', borderRadius: '2px' }}></div> 
+                <span style={{ color: '#dc2626' }}>(-) バランス</span>
               </div>
             </div>
             
