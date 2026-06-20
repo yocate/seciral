@@ -1,17 +1,23 @@
-import React, { useState } from 'react';
-import { UploadCloud, FolderSync, Database, CheckCircle, Loader2, ArrowRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useRef } from 'react';
+import { API_BASE_URL } from '../api';
+import { UploadCloud, Loader2, CheckCircle } from 'lucide-react';
 import './KnowledgeIngestion.css';
 
-export const KnowledgeIngestion: React.FC = () => {
-  const [ingestStatus, setIngestStatus] = useState<'idle' | 'processing' | 'completed'>('idle');
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const navigate = useNavigate();
+interface Props {
+  onUploadStart?: () => void;
+}
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+export const KnowledgeIngestion: React.FC<Props> = ({ onUploadStart }) => {
+  const [ingestStatus, setIngestStatus] = useState<'idle' | 'processing' | 'completed'>('idle');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setSelectedFiles(Array.from(e.target.files));
+      const files = Array.from(e.target.files);
+      await handleUpload(files);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''; // reset input
+      }
     }
   };
 
@@ -19,17 +25,22 @@ export const KnowledgeIngestion: React.FC = () => {
     fileInputRef.current?.click();
   };
 
-  const handleStartAnalysis = async () => {
-    if (selectedFiles.length === 0) return;
-    
+  const handleUpload = async (files: File[]) => {
     setIngestStatus('processing');
+    if (onUploadStart) onUploadStart();
+    
     try {
       const formData = new FormData();
-      selectedFiles.forEach((file) => {
+      files.forEach((file) => {
         formData.append('files', file);
       });
+      formData.append('author', localStorage.getItem('sip_author') || 'System');
+      formData.append('department', localStorage.getItem('sip_department') || 'General');
+      formData.append('career', localStorage.getItem('sip_career') || '');
+      formData.append('characteristics', localStorage.getItem('sip_characteristics') || '');
 
-      const response = await fetch('http://localhost:8000/api/ingest', {
+      // 非同期のバックエンドに投げる
+      const response = await fetch(`${API_BASE_URL}/api/ingest`, {
         method: 'POST',
         body: formData,
       });
@@ -39,96 +50,48 @@ export const KnowledgeIngestion: React.FC = () => {
       }
       
       setIngestStatus('completed');
+      
+      // 5秒後にトーストを消す
+      setTimeout(() => {
+        setIngestStatus('idle');
+      }, 5000);
+      
     } catch (e) {
       console.error(e);
       setIngestStatus('idle');
     }
   };
 
-  const handleNext = () => {
-    navigate('/diagnostic');
-  };
-
   return (
-    <div className="ingestion-container animate-fade-in">
-      <div className="ingestion-header">
-        <h2>組織ナレッジの取り込み (Phase 0)</h2>
-        <p>戦略立案の土台となる既存の文書、計画、社内データを取り込み、統合知識ベースを構築します。</p>
-      </div>
+    <div className="ingestion-simple">
+      <input 
+        type="file" 
+        multiple 
+        ref={fileInputRef} 
+        onChange={handleFileChange} 
+        style={{ display: 'none' }} 
+      />
+      
+      <button 
+        className="btn-upload-simple" 
+        onClick={handleUploadClick}
+        disabled={ingestStatus === 'processing'}
+      >
+        <UploadCloud size={16} />
+        ＋ ナレッジを追加
+      </button>
 
-      <div className="ingestion-cards">
-        <div className="ingest-card glass-panel">
-          <div className="card-icon"><UploadCloud size={32} /></div>
-          <h3>ファイルアップロード</h3>
-          <p>PDF、Word、Excel、画像など、個別の戦略文書や議事録をアップロードします。</p>
-          
-          <input 
-            type="file" 
-            multiple 
-            ref={fileInputRef} 
-            onChange={handleFileChange} 
-            style={{ display: 'none' }} 
-          />
-          
-          <div className="upload-zone" onClick={handleUploadClick}>
-            <p>クリックしてファイルを選択してください</p>
-          </div>
-
-          {selectedFiles.length > 0 && (
-            <div className="selected-files">
-              <h4>選択されたファイル:</h4>
-              <ul>
-                {selectedFiles.map((file, idx) => (
-                  <li key={idx}>{file.name}</li>
-                ))}
-              </ul>
-              <button 
-                className="btn-primary start-btn" 
-                onClick={handleStartAnalysis}
-                disabled={ingestStatus === 'processing'}
-              >
-                ファイルをアップロードして解析を開始
-              </button>
-            </div>
-          )}
+      {ingestStatus === 'processing' && (
+        <div className="toast processing">
+          <Loader2 className="spinning-icon" size={14} />
+          <span>解析中... (裏側で処理されます)</span>
         </div>
+      )}
 
-        <div className="ingest-card glass-panel">
-          <div className="card-icon"><FolderSync size={32} /></div>
-          <h3>フォルダ・SaaS連携</h3>
-          <p>Google Drive、Notion、Slackなど、組織の共有ワークスペースと同期します。</p>
-          <button className="btn-secondary" onClick={() => alert('SaaS連携は準備中です。')}>連携を設定する</button>
-        </div>
-      </div>
-
-      {ingestStatus !== 'idle' && (
-        <div className="ingestion-status glass-panel">
-          <div className="status-header">
-            <h3><Database size={20} /> 統合知識ベースの構築</h3>
-          </div>
-          
-          {ingestStatus === 'processing' && (
-            <div className="status-content processing">
-              <Loader2 className="spinning-icon" size={24} />
-              <div>
-                <p><strong>ドキュメントを解析中...</strong></p>
-                <p className="status-detail">エンティティ・因果関係の抽出、RAPTORによる階層的要約を行っています。</p>
-              </div>
-            </div>
-          )}
-
-          {ingestStatus === 'completed' && (
-            <div className="status-content completed">
-              <CheckCircle size={24} className="success-icon" />
-              <div>
-                <p><strong>ナレッジの統合が完了しました</strong></p>
-                <p className="status-detail">組織のコンテキストがSIPに移植されました。抽出された知識をもとに初期診断を開始できます。</p>
-              </div>
-              <button className="btn-primary start-diagnostic-btn" onClick={handleNext}>
-                初期診断を開始する <ArrowRight size={16} />
-              </button>
-            </div>
-          )}
+      {ingestStatus === 'completed' && (
+        <div className="toast success">
+          <CheckCircle size={14} />
+          <span>アップロード完了 (順次反映されます)</span>
         </div>
       )}
     </div>

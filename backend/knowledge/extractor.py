@@ -1,4 +1,4 @@
-import fitz  # PyMuPDF
+import pymupdf4llm
 import os
 from bs4 import BeautifulSoup
 
@@ -10,9 +10,7 @@ def extract_text(file_path: str) -> str:
     text = ""
     try:
         if ext == '.pdf':
-            doc = fitz.open(file_path)
-            for page in doc:
-                text += page.get_text() + "\n"
+            text = pymupdf4llm.to_markdown(file_path)
         elif ext in ['.txt', '.md', '.csv']:
             with open(file_path, 'r', encoding='utf-8') as f:
                 text = f.read()

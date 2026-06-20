@@ -54,12 +54,15 @@
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 20px;
+  min-width: 0;
 }
 
 .map-panel {
-  min-height: 400px;
-  display: flex;
-  flex-direction: column;
+  min-height: 800px;
+  min-width: 0;
+  display: grid;
+  grid-template-rows: auto 1fr 1fr;
+  gap: 20px;
 }
 
 .map-panel h3, .list-panel h3 {
@@ -78,7 +81,7 @@
   text-align: center;
   padding: 20px;
   color: var(--text-secondary);
-  background: rgba(0, 0, 0, 0.2);
+  background: #f9fafb;
 }
 
 .trace-list {
@@ -92,7 +95,7 @@
   display: flex;
   gap: 12px;
   padding-bottom: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .trace-list li:last-child {
