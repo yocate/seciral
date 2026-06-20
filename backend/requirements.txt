@@ -1,3 +1,17 @@
 fastapi
 uvicorn
 pydantic
+python-dotenv
+sqlite-utils
+beautifulsoup4
+langchain
+langchain-community
+langchain-core
+langchain-google-genai
+langchain-huggingface
+langchain-chroma
+langchain-text-splitters
+langgraph
+pymupdf4llm
+bcrypt
+pyjwt
