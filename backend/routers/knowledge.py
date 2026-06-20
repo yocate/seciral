@@ -183,6 +183,28 @@ def api_add_framework(req: FrameworkAddRequest):
         print(f"API Error: {e}")
         return {"status": "error", "message": "An internal server error occurred."}
 
+@router.put("/frameworks/{fw_id}")
+def api_update_framework(fw_id: str, req: FrameworkAddRequest):
+    from knowledge.database import update_framework
+    try:
+        if not req.name.strip() or not req.description.strip():
+            return {"status": "error", "message": "Name and description are required"}
+        update_framework(fw_id, req.name.strip(), req.description.strip())
+        return {"status": "success", "message": f"Framework {fw_id} updated"}
+    except Exception as e:
+        print(f"API Error: {e}")
+        return {"status": "error", "message": "An internal server error occurred."}
+
+@router.delete("/frameworks/{fw_id}")
+def api_delete_framework(fw_id: str):
+    from knowledge.database import delete_framework
+    try:
+        delete_framework(fw_id)
+        return {"status": "success", "message": f"Framework {fw_id} deleted"}
+    except Exception as e:
+        print(f"API Error: {e}")
+        return {"status": "error", "message": "An internal server error occurred."}
+
 class GraphGenerateRequest(BaseModel):
     session_id: str = "default_session"
 

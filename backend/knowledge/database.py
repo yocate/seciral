@@ -7,6 +7,8 @@ DB_PATH = "data/knowledge.db"
 def init_db(create_tables=False):
     os.makedirs("data", exist_ok=True)
     db = Database(DB_PATH)
+    db.execute("PRAGMA journal_mode=WAL")
+    db.execute("PRAGMA synchronous=NORMAL")
     
     if not create_tables:
         return db
@@ -472,6 +474,19 @@ def add_framework(name: str, description: str):
         "priority": "拡張" # デフォルトは拡張とする
     }, pk="id")
     return {"id": fw_id, "name": name, "description": description}
+
+def update_framework(fw_id: str, name: str, description: str):
+    db = init_db()
+    now = datetime.datetime.now().isoformat()
+    db["utilized_frameworks"].update(fw_id, {
+        "name": name,
+        "description": description,
+        "updated_at": now
+    })
+
+def delete_framework(fw_id: str):
+    db = init_db()
+    db["utilized_frameworks"].delete(fw_id)
 
 # --- User Auth Management ---
 

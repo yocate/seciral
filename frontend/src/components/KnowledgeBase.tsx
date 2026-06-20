@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { API_BASE_URL } from '../api';
-import { Database, FileText, Calendar, Loader2, BookOpen, Plus, ChevronDown, ChevronUp, Search } from 'lucide-react';
+import { Database, FileText, Calendar, Loader2, BookOpen, Plus, ChevronDown, ChevronUp, Search, Download } from 'lucide-react';
 import { KnowledgeIngestion } from './KnowledgeIngestion';
 import './KnowledgeBase.css';
 
@@ -28,6 +28,9 @@ const FrameworkManagement: React.FC = () => {
   const [newName, setNewName] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingFwId, setEditingFwId] = useState<string | null>(null);
+  const [editFwName, setEditFwName] = useState("");
+  const [editFwDesc, setEditFwDesc] = useState("");
 
   const fetchFrameworks = async () => {
     try {
@@ -66,6 +69,41 @@ const FrameworkManagement: React.FC = () => {
       console.error(e);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleFwDelete = async (fwId: string) => {
+    if (!window.confirm("このフレームワークを削除してもよろしいですか？")) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/knowledge/frameworks/${fwId}`, { method: 'DELETE' });
+      if (res.ok) {
+        setFrameworks(prev => prev.filter(fw => fw.id !== fwId));
+      } else {
+        alert("削除に失敗しました");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("削除でエラーが発生しました");
+    }
+  };
+
+  const handleFwUpdateSubmit = async (fwId: string) => {
+    if (!editFwName.trim() || !editFwDesc.trim()) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/knowledge/frameworks/${fwId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: editFwName.trim(), description: editFwDesc.trim() })
+      });
+      if (res.ok) {
+        setFrameworks(prev => prev.map(fw => fw.id === fwId ? { ...fw, name: editFwName.trim(), description: editFwDesc.trim() } : fw));
+        setEditingFwId(null);
+      } else {
+        alert("更新に失敗しました");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("更新でエラーが発生しました");
     }
   };
 
@@ -127,17 +165,55 @@ const FrameworkManagement: React.FC = () => {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
           {frameworks.map(fw => (
             <div key={fw.id} className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <h4 style={{ margin: 0, color: '#1e293b', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <BookOpen size={18} color="#2563eb" /> {fw.name}
-                </h4>
-                <div style={{ background: '#eff6ff', color: '#2563eb', padding: '2px 8px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600 }}>
-                  参照: {fw.reference_count}回
+              {editingFwId === fw.id ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <input 
+                    type="text" 
+                    value={editFwName} 
+                    onChange={e => setEditFwName(e.target.value)} 
+                    style={{ padding: '6px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '1rem' }}
+                  />
+                  <textarea 
+                    value={editFwDesc} 
+                    onChange={e => setEditFwDesc(e.target.value)} 
+                    style={{ padding: '6px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '0.9rem', minHeight: '80px', resize: 'vertical' }}
+                  />
+                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
+                    <button onClick={() => setEditingFwId(null)} style={{ padding: '4px 12px', background: 'transparent', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer' }}>キャンセル</button>
+                    <button onClick={() => handleFwUpdateSubmit(fw.id)} style={{ padding: '4px 12px', background: '#2563eb', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>保存</button>
+                  </div>
                 </div>
-              </div>
-              <p style={{ margin: 0, color: '#475569', fontSize: '0.9rem', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
-                {fw.description}
-              </p>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <h4 style={{ margin: 0, color: '#1e293b', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <BookOpen size={18} color="#2563eb" /> {fw.name}
+                    </h4>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <div style={{ background: '#eff6ff', color: '#2563eb', padding: '2px 8px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600 }}>
+                        参照: {fw.reference_count}回
+                      </div>
+                    </div>
+                  </div>
+                  <p style={{ margin: 0, color: '#475569', fontSize: '0.9rem', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                    {fw.description}
+                  </p>
+                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: 'auto', paddingTop: '8px' }}>
+                    <button 
+                      onClick={() => { setEditingFwId(fw.id); setEditFwName(fw.name); setEditFwDesc(fw.description); }}
+                      style={{ padding: '4px 10px', fontSize: '0.8rem', background: 'white', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer', color: '#475569' }}
+                    >
+                      編集
+                    </button>
+                    <button 
+                      onClick={() => handleFwDelete(fw.id)}
+                      style={{ padding: '4px 10px', fontSize: '0.8rem', background: '#fee2e2', color: '#dc2626', border: '1px solid #f87171', borderRadius: '4px', cursor: 'pointer' }}
+                    >
+                      削除
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           ))}
         </div>
@@ -251,6 +327,26 @@ export const KnowledgeBase: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
+  const handleExportAll = async () => {
+    try {
+      // 既存のエクスポートAPIを流用（全てのナレッジとフレームワークを含む）
+      const res = await fetch(`${API_BASE_URL}/api/knowledge/export`);
+      const data = await res.json();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `seciral_knowledge_export_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error(e);
+      alert('エクスポートに失敗しました');
+    }
+  };
+
   return (
     <div className="knowledge-base-container animate-fade-in">
       <div className="kb-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -258,7 +354,15 @@ export const KnowledgeBase: React.FC = () => {
           <h2>ナレッジエクスプローラー</h2>
           <p>組織の情報資産・ナレッジとフレームワークの管理</p>
         </div>
-        {activeTab === 'docs' && <KnowledgeIngestion />}
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <button 
+            onClick={handleExportAll}
+            style={{ padding: '8px 16px', background: '#f8fafc', color: '#0f172a', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500, boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
+          >
+            <Download size={16} /> 全データをエクスポート
+          </button>
+          {activeTab === 'docs' && <KnowledgeIngestion />}
+        </div>
       </div>
       
       <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', borderBottom: '1px solid #e2e8f0' }}>
