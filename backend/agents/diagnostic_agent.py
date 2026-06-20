@@ -1,19 +1,10 @@
 import os
 from typing import Annotated, TypedDict
-from langchain_google_genai import ChatGoogleGenerativeAI
+from api.llm_factory import get_llm
 from langchain_core.messages import SystemMessage, HumanMessage, AnyMessage, AIMessage
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from langgraph.checkpoint.sqlite import SqliteSaver
-import sqlite3
-
-import os
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.messages import SystemMessage, HumanMessage, AnyMessage, AIMessage
-from langgraph.checkpoint.sqlite import SqliteSaver
-from langgraph.graph import StateGraph, START, END
-from langgraph.graph.message import add_messages
-from typing import Annotated, TypedDict
 import sqlite3
 
 class State(TypedDict):
@@ -53,17 +44,9 @@ EVALUATOR_PROMPT = """あなたはRAG（Retrieval-Augmented Generation）シス�
 """
 
 def create_agent():
-    llm = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash",
-        temperature=0.7,
-        google_api_key=os.environ.get("GEMINI_API_KEY")
-    )
+    llm = get_llm(temperature=0.7)
     
-    evaluator_llm = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash",
-        temperature=0.0,
-        google_api_key=os.environ.get("GEMINI_API_KEY")
-    )
+    evaluator_llm = get_llm(temperature=0.0)
 
     def chat_node(state: State):
         messages = state["messages"]

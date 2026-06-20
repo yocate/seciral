@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 from typing import Optional
 
-from langchain_google_genai import ChatGoogleGenerativeAI
+from api.llm_factory import get_llm
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from langchain_core.prompts import PromptTemplate
 
@@ -232,7 +232,7 @@ def get_template_completeness(session_id: str, template_id: str):
 出力は、0から100の間の整数値（数字のみ）を出力してください。余計な文字は一切含めないでください。
 ''')
         
-        llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.0)
+        llm = get_llm(temperature=0.0)
         chain = prompt | llm
         res = chain.invoke({
             "template_text": f"{template['name']} - {template['description']}\n{template['system_prompt']}",
@@ -272,7 +272,7 @@ def generate_document_endpoint(session_id: str, request: GenerateDocumentRequest
 Markdown形式で出力してください。
 ''')
         
-        llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.2)
+        llm = get_llm(temperature=0.2)
         chain = prompt | llm
         res = chain.invoke({
             "template_text": f"# {template['name']}\n{template['description']}\n{template['system_prompt']}",

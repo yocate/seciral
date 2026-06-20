@@ -1,6 +1,6 @@
 import os
 import json
-from langchain_google_genai import ChatGoogleGenerativeAI
+from api.llm_factory import get_llm
 from langchain_core.messages import SystemMessage, HumanMessage
 from knowledge.database import get_all_frameworks
 
@@ -34,11 +34,7 @@ SYSTEM_PROMPT = """あなたは高度な因果ループ・ナレッジグラフ�
 """
 
 def extract_graph(session_id: str, input_text: str, current_graph_text: str, input_type: str = "対話履歴", strategic_persona: str = "") -> dict:
-    llm = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash",
-        temperature=0.2,
-        google_api_key=os.environ.get("GEMINI_API_KEY")
-    )
+    llm = get_llm(temperature=0.2)
     
     # 登録済みフレームワークの取得とフォーマット
     fws = get_all_frameworks()
@@ -109,11 +105,7 @@ META_INSIGHT_PROMPT = """あなたは高度な「システム思考」および�
 """
 
 def extract_meta_insights(graph_data: dict) -> dict:
-    llm = ChatGoogleGenerativeAI(
-        model="gemini-2.5-pro",
-        temperature=0.4,
-        google_api_key=os.environ.get("GEMINI_API_KEY")
-    )
+    llm = get_llm(model="gemini-2.5-pro", temperature=0.4)
     
     nodes = [n.get("name", "") for n in graph_data.get("nodes", [])]
     edges = [f"{e.get('source')} --({e.get('label')})--> {e.get('target')} (理由: {e.get('reason','')})" for e in graph_data.get("links", [])]

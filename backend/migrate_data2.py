@@ -1,7 +1,7 @@
 import sqlite3
 import json
 import os
-from langchain_google_genai import ChatGoogleGenerativeAI
+from api.llm_factory import get_llm
 from langchain_core.messages import SystemMessage, HumanMessage
 
 def perform_entity_resolution(conn):
@@ -34,11 +34,7 @@ def perform_entity_resolution(conn):
 ノードリスト：
 {node_list_str}
 """
-    llm = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash",
-        temperature=0.0,
-        google_api_key=os.environ.get("GEMINI_API_KEY")
-    )
+    llm = get_llm(temperature=0.0)
     
     response = llm.invoke([HumanMessage(content=prompt)])
     content = response.content.strip()

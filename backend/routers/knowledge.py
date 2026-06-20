@@ -8,7 +8,7 @@ from knowledge.database import (
     get_latest_insight, save_latest_insight, get_graph as db_get_graph, init_db
 )
 from agents.graph_extractor import extract_meta_insights
-from langchain_google_genai import ChatGoogleGenerativeAI
+from api.llm_factory import get_llm
 from langchain_core.messages import HumanMessage
 
 router = APIRouter(prefix="/api/knowledge", tags=["knowledge"])
@@ -142,11 +142,7 @@ def evaluate_causal_loop(loop_data: dict):
 }}
 """
     try:
-        llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash",
-            temperature=0.0,
-            google_api_key=os.environ.get("GEMINI_API_KEY")
-        )
+        llm = get_llm(temperature=0.0)
         response = llm.invoke([HumanMessage(content=prompt)])
         content = response.content.strip()
         if content.startswith("```json"):
@@ -235,7 +231,7 @@ def process_ingestion(file_locations: list, filenames: list, project_id: Optiona
             if text:
                 summary = ""
                 try:
-                    llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.0)
+                    llm = get_llm(temperature=0.0)
                     summary_prompt = "以下のドキュメントの内容を300文字〜400文字程度で要約してください。どのようなナレッジが含まれているかが一目でわかるように説明してください。"
                     target_text_for_summary = text[:10000] if len(text) > 10000 else text
                     res = llm.invoke([SystemMessage(content=summary_prompt), HumanMessage(content=target_text_for_summary)])
