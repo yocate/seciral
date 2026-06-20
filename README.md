@@ -41,3 +41,64 @@ SWOT分析、PEST分析、3C分析などのビジネスフレームワークをA
 - **Frontend**: React 18, Vite, TypeScript, React-Force-Graph-2D, Lucide React
 
 詳細なシステム構成やデータベーススキーマについては、[docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) を参照してください。
+
+---
+
+## 5. 環境構築・起動手順
+
+本プロジェクトはフロントエンド（React/Vite）とバックエンド（FastAPI/Python）に分かれています。以下の手順でローカル環境を構築してください。
+
+### 前提条件
+- Node.js (v18以降を推奨)
+- Python (3.10以降を推奨 ※現在3.14環境で構築実績あり)
+- Git
+
+### ステップ 1: リポジトリのクローン
+```bash
+git clone https://github.com/yocate/seciral.git
+cd seciral
+```
+
+### ステップ 2: バックエンドのセットアップ
+バックエンドディレクトリに移動し、Pythonの仮想環境を構築します。
+```bash
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+依存パッケージをインストールします。
+```bash
+pip install -r requirements.txt
+```
+
+環境変数を設定します。`.env.example` をコピーして `.env` を作成し、Google Gemini APIキーを設定してください。
+```bash
+cp .env.example .env
+# .env ファイルを開き、GEMINI_API_KEY=あなたのAPIキー に書き換えてください
+```
+
+FastAPIサーバーを起動します。
+```bash
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
+（サーバーは `http://localhost:8000` で起動します）
+
+### ステップ 3: フロントエンドのセットアップ
+別のターミナルタブを開き、フロントエンドディレクトリに移動します。
+```bash
+cd frontend
+```
+
+依存パッケージをインストールします。
+```bash
+npm install
+```
+
+Vite開発サーバーを起動します。
+```bash
+npm run dev
+```
+（デフォルトで `http://localhost:5173` で起動します）
+
+ブラウザで `http://localhost:5173` にアクセスし、SECIralの画面が表示されれば環境構築は完了です。
