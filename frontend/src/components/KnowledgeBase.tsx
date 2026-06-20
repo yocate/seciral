@@ -31,7 +31,7 @@ const FrameworkManagement: React.FC = () => {
 
   const fetchFrameworks = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/frameworks`);
+      const res = await fetch(`${API_BASE_URL}/api/knowledge/frameworks`);
       const data = await res.json();
       if (data.status === 'success') setFrameworks(data.frameworks || []);
     } catch (e) {
@@ -50,7 +50,7 @@ const FrameworkManagement: React.FC = () => {
     if (!newName.trim() || !newDesc.trim()) return;
     setIsSubmitting(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/frameworks`, {
+      const res = await fetch(`${API_BASE_URL}/api/knowledge/frameworks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: newName.trim(), description: newDesc.trim() })
